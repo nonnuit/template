@@ -1,14 +1,22 @@
 import React, { useState, useEffect } from 'react';
 
-const PokemonStudyTimer = () => {
-  const [initialTime, setInitialTime] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(0);
-  const [isRunning, setIsRunning] = useState(false);
-  const [pokemon, setPokemon] = useState(null);
-  const [caughtPokemon, setCaughtPokemon] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [showPokedex, setShowPokedex] = useState(false);
+interface Pokemon {
+  id: number;
+  name: string;
+  types: string[];
+  image: string;
+  captureDate?: string;
+}
+
+const PokemonStudyTimer: React.FC = () => {
+  const [initialTime, setInitialTime] = useState<number>(0);
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [pokemon, setPokemon] = useState<Pokemon | null>(null);
+  const [caughtPokemon, setCaughtPokemon] = useState<Pokemon[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showPokedex, setShowPokedex] = useState<boolean>(false);
 
   useEffect(() => {
     const savedPokemon = localStorage.getItem('caughtPokemon');
@@ -24,7 +32,7 @@ const PokemonStudyTimer = () => {
   }, [caughtPokemon]);
 
   useEffect(() => {
-    let timer;
+    let timer: ReturnType<typeof setInterval>;
     if (isRunning && timeLeft > 0) {
       timer = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
@@ -36,13 +44,16 @@ const PokemonStudyTimer = () => {
     return () => clearInterval(timer);
   }, [isRunning, timeLeft]);
 
-  const formatTime = (seconds) => {
+  const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleTimeInput = (e, type) => {
+  const handleTimeInput = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: 'minutes' | 'seconds'
+  ): void => {
     const value = parseInt(e.target.value) || 0;
     if (type === 'minutes') {
       setInitialTime(value * 60 + (timeLeft % 60));
@@ -53,24 +64,24 @@ const PokemonStudyTimer = () => {
     }
   };
 
-  const resetTimer = () => {
+  const resetTimer = (): void => {
     setTimeLeft(initialTime);
     setIsRunning(false);
     setPokemon(null);
     setError(null);
   };
 
-  const getPokemon = async () => {
+  const getPokemon = async (): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
       const id = Math.floor(Math.random() * 151) + 1;
       const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
       const data = await response.json();
-      const newPokemon = {
+      const newPokemon: Pokemon = {
         id: data.id,
         name: data.name,
-        types: data.types.map((t) => t.type.name),
+        types: data.types.map((t: { type: { name: string } }) => t.type.name),
         image: data.sprites.front_default,
         captureDate: new Date().toLocaleDateString(),
       };
@@ -85,7 +96,7 @@ const PokemonStudyTimer = () => {
 
   const sortedPokemon = [...caughtPokemon].sort((a, b) => a.id - b.id);
 
-  const Pokedex = () => (
+  const Pokedex: React.FC = () => (
     <div className='fixed inset-0 bg-black/50 flex items-center justify-center p-4'>
       <div className='bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-hidden'>
         <div className='p-4 border-b flex justify-between items-center'>
